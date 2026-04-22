@@ -270,8 +270,32 @@
     }
     .feedback-btn:hover { border-color: var(--ink); color: var(--ink); }
 
+    /* ── MEMORY HINT + CLEAR BUTTON ────────────── */
+    .memory-hint {
+      font-size: 0.68rem;
+      color: var(--border);
+      margin-top: 2rem;
+      letter-spacing: 0.02em;
+    }
+
+
+    #btn-clear-memory {
+      font-family: 'DM Mono', monospace;
+      font-weight: 300;
+      font-size: 0.65rem;
+      color: var(--border);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-top: 2rem;
+      transition: color 0.15s;
+    }
+    #btn-clear-memory:hover { color: var(--muted); }
+
     footer {
-      margin-top: 3.5rem;
+      margin-top: 1.5rem;
       font-size: 0.65rem;
       color: var(--border);
       letter-spacing: 0.06em;
@@ -376,6 +400,9 @@
 
   </main>
 
+  <p class="memory-hint">Your selections and last result are saved on this device.</p>
+  <button id="btn-clear-memory">Clear memory</button>
+
   <footer>Drift — UX Prototype · Powered by Gemini</footer>
 
   <script>
@@ -449,6 +476,9 @@ Why this fits: [1 short sentence]
 
         selections[group] = value;
 
+        // localStorage — save each selection as user picks it
+        try { localStorage.setItem(`drift_${group}`, value); } catch(e) {}
+
         document.querySelectorAll(`.opt-btn[data-group="${group}"]`).forEach(b => {
           b.classList.remove('selected');
         });
@@ -466,7 +496,7 @@ Why this fits: [1 short sentence]
     ═══════════════════════════════════════════════ */
     async function callGemini(apiKey, location, energy, time) {
       const endpoint =
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
       const userPrompt =
         `I am currently ${location}. My energy level is ${energy}. I have ${time} available. What should I do instead of scrolling?`;
@@ -545,8 +575,9 @@ Why this fits: [1 short sentence]
       }
 
       showError('');
-      document.getElementById('result-card').style.display = 'none';
       showLoading(true);
+      // Note: we intentionally do NOT hide the result card here.
+      // If the API call fails, the previously saved result stays visible.
 
       try {
         const rawText = await callGemini(
@@ -556,9 +587,20 @@ Why this fits: [1 short sentence]
           selections.time
         );
         const { action, why } = parseResponse(rawText);
+
+        // We have a valid new result — safe to replace the old card now
+        document.getElementById('result-card').style.display = 'none';
         showResultCard(action, why);
 
+        // localStorage — persist the new result so it survives a refresh.
+        // Only written on success; a failed request never overwrites the last good result.
+        try {
+          localStorage.setItem('drift_last_action', action);
+          localStorage.setItem('drift_last_why',    why);
+        } catch(e) {}
+
       } catch (err) {
+        // API failed — old result card (if any) remains visible.
         // "API key not valid" → wrong key
         // "HTTP 429"          → too many requests, try again in a moment
         showError(`Something went wrong: ${err.message}`);
@@ -582,6 +624,93 @@ Why this fits: [1 short sentence]
       console.log('Feedback: not right', selections);
       this.textContent = '✗ Noted';
       this.disabled = true;
+    });
+
+
+    /* ═══════════════════════════════════════════════
+       LOCALSTORAGE — RESTORE STATE ON PAGE LOAD
+       Reads saved selections and last result from
+       localStorage and re-applies them to the UI.
+    ═══════════════════════════════════════════════ */
+    (function restoreState() {
+      // If localStorage is unavailable (sandboxed iframe, private mode, etc.)
+      // the whole block is skipped and the app starts fresh — no crash.
+      try {
+
+        // ── Restore button selections ──────────────────────────────────────
+        // For each group, we only restore if the saved value matches an actual
+        // button in the DOM. This means stale or malformed values are silently
+        // ignored rather than leaving the selections object in a broken state.
+        ['location', 'energy', 'time'].forEach(group => {
+          const saved = localStorage.getItem(`drift_${group}`);
+          if (!saved || typeof saved !== 'string') return; // missing or wrong type
+
+          const btn = document.querySelector(
+            `.opt-btn[data-group="${group}"][data-value="${saved}"]`
+          );
+          if (!btn) return; // value doesn't match any button — discard it
+
+          selections[group] = saved;
+          btn.classList.add('selected');
+        });
+
+        // ── Restore last result card ───────────────────────────────────────
+        // Only show the card if the saved action is a non-empty string.
+        // An empty string, whitespace-only, or missing value keeps the card hidden.
+        const savedAction = localStorage.getItem('drift_last_action');
+        const savedWhy    = localStorage.getItem('drift_last_why');
+        const cleanAction = savedAction && savedAction.trim();
+
+        if (cleanAction) {
+          document.getElementById('result-action').textContent = cleanAction;
+          document.getElementById('result-why').textContent    = savedWhy ? savedWhy.trim() : '';
+          // Show without animation — this is a restore, not a fresh result
+          const card = document.getElementById('result-card');
+          card.style.animation = 'none';
+          card.style.display   = 'flex';
+        }
+        // If action is invalid the card stays hidden — safe default
+
+      } catch(e) {
+        // localStorage read failed (e.g. corrupted storage) — app works normally
+      }
+    })();
+
+
+    /* ═══════════════════════════════════════════════
+       LOCALSTORAGE — CLEAR MEMORY BUTTON
+       Removes all drift_* keys and resets the UI
+       back to its blank initial state.
+    ═══════════════════════════════════════════════ */
+    document.getElementById('btn-clear-memory').addEventListener('click', () => {
+      // Wipe every drift key from localStorage
+      try {
+        ['location', 'energy', 'time', 'last_action', 'last_why'].forEach(key => {
+          localStorage.removeItem(`drift_${key}`);
+        });
+      } catch(e) {}
+
+      // Reset in-memory selections
+      selections.location = null;
+      selections.energy   = null;
+      selections.time     = null;
+
+      // Deselect all option buttons
+      document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+
+      // Hide and blank the result card
+      const card = document.getElementById('result-card');
+      card.style.display = 'none';
+      document.getElementById('result-action').textContent = '—';
+      document.getElementById('result-why').textContent    = '—';
+
+      // Reset feedback buttons to their original state
+      const worked   = document.getElementById('btn-worked');
+      const notRight = document.getElementById('btn-not-right');
+      worked.textContent   = '✓ This worked';
+      worked.disabled      = false;
+      notRight.textContent = '✗ Not right for this moment';
+      notRight.disabled    = false;
     });
 
   </script>
