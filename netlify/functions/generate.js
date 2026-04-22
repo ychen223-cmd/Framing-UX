@@ -37,7 +37,7 @@ Core rules:
 - Do not assume ideal conditions
 
 Output format (use exactly this, no extra text):
-Action: [one concrete action]
+Action: [one concrete action — must be a complete sentence, no trailing words or "and"]
 Why this fits: [1 short sentence]
 `.trim();
 
