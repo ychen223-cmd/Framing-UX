@@ -43,8 +43,9 @@ Why this fits: [1 short sentence]
 
 
 // ── MAIN HANDLER ──────────────────────────────────────────────────────────────
-// Netlify calls this `handler` function every time a request hits this endpoint.
-export async function handler(event) {
+// Netlify calls exports.handler for every request to this function.
+// CommonJS syntax (not ES modules) — no package.json config needed.
+exports.handler = async function (event) {
 
   // Only allow POST requests (the browser sends POST with user data)
   if (event.httpMethod !== "POST") {
@@ -95,7 +96,7 @@ export async function handler(event) {
   const userPrompt = `I am currently ${location}. My energy level is ${energy}. I have ${time} available. What should I do instead of scrolling?`;
 
   // ── 4. CALL THE GEMINI API ────────────────────────────────────────────────
-  const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+  const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
   let rawText = "";
   try {

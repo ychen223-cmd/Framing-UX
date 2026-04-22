@@ -67,68 +67,6 @@
       gap: var(--gap);
     }
 
-    /* ── API KEY BOX ─────────────────────────────── */
-    #api-key-section {
-      display: flex;
-      flex-direction: column;
-      gap: 0.65rem;
-      padding: 1rem;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--card-bg);
-    }
-
-    .key-input-row {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-
-    /* The text/password input */
-    #api-key-input {
-      font-family: 'DM Mono', monospace;
-      font-weight: 300;
-      font-size: 0.78rem;
-      flex: 1;
-      padding: 0.5rem 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--bg);
-      color: var(--ink);
-      outline: none;
-    }
-    #api-key-input:focus { border-color: var(--ink); }
-
-    /* Show / Hide toggle */
-    #toggle-key-visibility {
-      font-family: 'DM Mono', monospace;
-      font-weight: 300;
-      font-size: 0.7rem;
-      padding: 0.45rem 0.65rem;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      background: transparent;
-      color: var(--muted);
-      cursor: pointer;
-      white-space: nowrap;
-      transition: border-color 0.15s, color 0.15s;
-    }
-    #toggle-key-visibility:hover { border-color: var(--ink); color: var(--ink); }
-
-    .key-hint {
-      font-size: 0.68rem;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-    .key-hint a { color: var(--muted); text-decoration: underline; }
-
-    /* "Key entered ✓" confirmation */
-    #key-status {
-      font-size: 0.68rem;
-      color: var(--muted);
-      display: none;
-    }
-
     /* ── FIELD GROUPS ────────────────────────────── */
     .field {
       display: flex;
@@ -312,36 +250,6 @@
 
   <main>
 
-    <!-- ── API KEY INPUT BOX ──────────────────────
-         Each user pastes their own Gemini key here.
-         The key stays in the browser's memory only —
-         it is sent directly to Google, never stored.
-    ─────────────────────────────────────────────── -->
-    <div id="api-key-section">
-      <span class="field-label">Your Gemini API Key</span>
-
-      <div class="key-input-row">
-        <!-- type="password" hides the characters by default -->
-        <input
-          type="password"
-          id="api-key-input"
-          placeholder="Paste your key here  (AIza...)"
-          autocomplete="off"
-          spellcheck="false"
-        />
-        <!-- Toggles the key visible / hidden -->
-        <button id="toggle-key-visibility">Show</button>
-      </div>
-
-      <p class="key-hint">
-        Get a free key at
-        <a href="https://aistudio.google.com" target="_blank" rel="noopener">aistudio.google.com</a>
-        → Get API key. Your key is used only in your browser and never saved.
-      </p>
-
-      <p id="key-status">Key entered ✓</p>
-    </div>
-
     <!-- INPUT 1 -->
     <div class="field">
       <span class="field-label">Where are you?</span>
@@ -374,7 +282,7 @@
       </div>
     </div>
 
-    <p id="validation-msg">↑ Please enter your API key and select one option in each section.</p>
+    <p id="validation-msg">↑ Please select one option in each section.</p>
 
     <button id="get-action-btn">Get my action</button>
 
@@ -407,36 +315,6 @@
 
   <script>
     /* ═══════════════════════════════════════════════
-       SYSTEM PROMPT — edit this to change AI behavior
-    ═══════════════════════════════════════════════ */
-    const SYSTEM_PROMPT = `
-You are Intentional Leisure Advisor, a context-aware leisure design assistant.
-This system is designed for SINGLE-SHOT use, not open-ended chat.
-The user gives a few structured inputs, and you return one concise recommendation.
-
-Mission:
-Help users shift from passive scrolling to intentional leisure in real-life conditions.
-Your job is not to optimize productivity. Your job is to support realistic,
-low-friction leisure choices that match the user's actual state.
-
-Core rules:
-- Return exactly ONE action
-- Be short and direct
-- Be immediately actionable
-- Match the user's current energy and time
-- Avoid preparation, setup, travel, or special tools unless already available
-- Do not give long wellness articles
-- Do not give multiple options
-- Do not use productivity or self-improvement framing
-- Do not assume ideal conditions
-
-Output format (use exactly this, no extra text):
-Action: [one concrete action]
-Why this fits: [1 short sentence]
-    `.trim();
-
-
-    /* ═══════════════════════════════════════════════
        STATE
     ═══════════════════════════════════════════════ */
     const selections = {
@@ -444,26 +322,6 @@ Why this fits: [1 short sentence]
       energy:   null,
       time:     null,
     };
-
-
-    /* ═══════════════════════════════════════════════
-       API KEY INPUT
-    ═══════════════════════════════════════════════ */
-    const keyInput     = document.getElementById('api-key-input');
-    const keyStatus    = document.getElementById('key-status');
-    const toggleKeyBtn = document.getElementById('toggle-key-visibility');
-
-    // Show "Key entered ✓" once the user types anything
-    keyInput.addEventListener('input', () => {
-      keyStatus.style.display = keyInput.value.trim() ? 'block' : 'none';
-    });
-
-    // Toggle between showing and hiding the key
-    toggleKeyBtn.addEventListener('click', () => {
-      const isHidden = keyInput.type === 'password';
-      keyInput.type = isHidden ? 'text' : 'password';
-      toggleKeyBtn.textContent = isHidden ? 'Hide' : 'Show';
-    });
 
 
     /* ═══════════════════════════════════════════════
@@ -486,53 +344,6 @@ Why this fits: [1 short sentence]
         document.getElementById('validation-msg').style.display = 'none';
       });
     });
-
-
-    /* ═══════════════════════════════════════════════
-       CALL GEMINI (directly from the browser)
-       Because each user supplies their OWN key,
-       calling from the frontend is fine here.
-       The key lives only in memory — never logged.
-    ═══════════════════════════════════════════════ */
-    async function callGemini(apiKey, location, energy, time) {
-      const endpoint =
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-      const userPrompt =
-        `I am currently ${location}. My energy level is ${energy}. I have ${time} available. What should I do instead of scrolling?`;
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 200 },
-        }),
-      });
-
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err?.error?.message || `HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    }
-
-
-    /* ═══════════════════════════════════════════════
-       PARSE RESPONSE
-    ═══════════════════════════════════════════════ */
-    function parseResponse(text) {
-      let action = text.trim();
-      let why    = "";
-      const a = text.match(/Action:\s*(.+)/i);
-      if (a) action = a[1].trim();
-      const w = text.match(/Why this fits:\s*(.+)/i);
-      if (w) why = w[1].trim();
-      return { action, why };
-    }
 
 
     /* ═══════════════════════════════════════════════
@@ -563,13 +374,14 @@ Why this fits: [1 short sentence]
 
     /* ═══════════════════════════════════════════════
        MAIN BUTTON
+       Sends the 3 selections to the Netlify serverless
+       function, which calls Gemini server-side using a
+       secret key. No API key is handled in the browser.
     ═══════════════════════════════════════════════ */
     document.getElementById('get-action-btn').addEventListener('click', async () => {
 
-      const apiKey = keyInput.value.trim();
-
-      // Need: API key + all 3 selections
-      if (!apiKey || !selections.location || !selections.energy || !selections.time) {
+      // Need all 3 selections — no API key required from the user
+      if (!selections.location || !selections.energy || !selections.time) {
         document.getElementById('validation-msg').style.display = 'block';
         return;
       }
@@ -577,16 +389,29 @@ Why this fits: [1 short sentence]
       showError('');
       showLoading(true);
       // Note: we intentionally do NOT hide the result card here.
-      // If the API call fails, the previously saved result stays visible.
+      // If the request fails, the previously saved result stays visible.
 
       try {
-        const rawText = await callGemini(
-          apiKey,
-          selections.location,
-          selections.energy,
-          selections.time
-        );
-        const { action, why } = parseResponse(rawText);
+        // POST the 3 selections to the Netlify function.
+        // The function calls Gemini with a server-side secret — nothing secret in this request.
+        const response = await fetch('/.netlify/functions/generate', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({
+            location: selections.location,
+            energy:   selections.energy,
+            time:     selections.time,
+          }),
+        });
+
+        // If the server returned an error, surface its message
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err?.error || `Server error ${response.status}`);
+        }
+
+        // The function returns { action, why } — already parsed, nothing secret
+        const { action, why } = await response.json();
 
         // We have a valid new result — safe to replace the old card now
         document.getElementById('result-card').style.display = 'none';
@@ -600,9 +425,7 @@ Why this fits: [1 short sentence]
         } catch(e) {}
 
       } catch (err) {
-        // API failed — old result card (if any) remains visible.
-        // "API key not valid" → wrong key
-        // "HTTP 429"          → too many requests, try again in a moment
+        // Request failed — old result card (if any) remains visible
         showError(`Something went wrong: ${err.message}`);
         console.error(err);
       } finally {
@@ -639,11 +462,10 @@ Why this fits: [1 short sentence]
 
         // ── Restore button selections ──────────────────────────────────────
         // For each group, we only restore if the saved value matches an actual
-        // button in the DOM. This means stale or malformed values are silently
-        // ignored rather than leaving the selections object in a broken state.
+        // button in the DOM. Stale or malformed values are silently ignored.
         ['location', 'energy', 'time'].forEach(group => {
           const saved = localStorage.getItem(`drift_${group}`);
-          if (!saved || typeof saved !== 'string') return; // missing or wrong type
+          if (!saved || typeof saved !== 'string') return;
 
           const btn = document.querySelector(
             `.opt-btn[data-group="${group}"][data-value="${saved}"]`
@@ -656,7 +478,6 @@ Why this fits: [1 short sentence]
 
         // ── Restore last result card ───────────────────────────────────────
         // Only show the card if the saved action is a non-empty string.
-        // An empty string, whitespace-only, or missing value keeps the card hidden.
         const savedAction = localStorage.getItem('drift_last_action');
         const savedWhy    = localStorage.getItem('drift_last_why');
         const cleanAction = savedAction && savedAction.trim();
@@ -669,10 +490,9 @@ Why this fits: [1 short sentence]
           card.style.animation = 'none';
           card.style.display   = 'flex';
         }
-        // If action is invalid the card stays hidden — safe default
 
       } catch(e) {
-        // localStorage read failed (e.g. corrupted storage) — app works normally
+        // localStorage read failed — app works normally
       }
     })();
 
@@ -683,28 +503,23 @@ Why this fits: [1 short sentence]
        back to its blank initial state.
     ═══════════════════════════════════════════════ */
     document.getElementById('btn-clear-memory').addEventListener('click', () => {
-      // Wipe every drift key from localStorage
       try {
         ['location', 'energy', 'time', 'last_action', 'last_why'].forEach(key => {
           localStorage.removeItem(`drift_${key}`);
         });
       } catch(e) {}
 
-      // Reset in-memory selections
       selections.location = null;
       selections.energy   = null;
       selections.time     = null;
 
-      // Deselect all option buttons
       document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
 
-      // Hide and blank the result card
       const card = document.getElementById('result-card');
       card.style.display = 'none';
       document.getElementById('result-action').textContent = '—';
       document.getElementById('result-why').textContent    = '—';
 
-      // Reset feedback buttons to their original state
       const worked   = document.getElementById('btn-worked');
       const notRight = document.getElementById('btn-not-right');
       worked.textContent   = '✓ This worked';
