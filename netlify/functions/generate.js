@@ -37,8 +37,8 @@ Core rules:
 - Do not assume ideal conditions
 
 Output format (use exactly this, no extra text):
-Action: [one concrete action — must be a complete sentence, no trailing words or "and"]
-Why this fits: [1 short sentence]
+Action: [one complete sentence — must end with a period, never cut off mid-phrase]
+Why this fits: [one complete sentence ending with a period]
 `.trim();
 
 
@@ -114,8 +114,8 @@ exports.handler = async function (event) {
           },
         ],
         generationConfig: {
-          temperature: 0.7,      // slight creativity
-          maxOutputTokens: 200,  // keep it short
+          temperature: 0.7,
+          maxOutputTokens: 300,  // enough for two complete sentences with room to spare
         },
       }),
     });
@@ -141,10 +141,13 @@ exports.handler = async function (event) {
   let action = rawText.trim();
   let why    = "";
 
-  const actionMatch = rawText.match(/Action:\s*(.+)/i);
+  // Capture everything between "Action:" and "Why this fits:" as the action.
+  // Using [\s\S]+? allows the action to span multiple lines without being cut off.
+  const actionMatch = rawText.match(/Action:\s*([\s\S]+?)\s*(?:Why this fits:|$)/i);
   if (actionMatch) action = actionMatch[1].trim();
 
-  const whyMatch = rawText.match(/Why this fits:\s*(.+)/i);
+  // Capture everything after "Why this fits:" to end of string.
+  const whyMatch = rawText.match(/Why this fits:\s*([\s\S]+)/i);
   if (whyMatch) why = whyMatch[1].trim();
 
   // ── 6. RETURN THE RESULT TO THE BROWSER ──────────────────────────────────
