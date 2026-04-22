@@ -96,6 +96,9 @@ exports.handler = async function (event) {
   const userPrompt = `I am currently ${location}. My energy level is ${energy}. I have ${time} available. What should I do instead of scrolling?`;
 
   // ── 4. CALL THE GEMINI API ────────────────────────────────────────────────
+  // Artificial 5-second delay before the API call
+  await new Promise(r => setTimeout(r, 5000));
+
   const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
   let rawText = "";
