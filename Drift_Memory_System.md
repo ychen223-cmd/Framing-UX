@@ -113,3 +113,63 @@ This allows:
 - Keep interaction minimal  
 - Avoid cognitive overload  
 - Maintain continuity through memory  
+
+---
+
+## 8. Polish Updates (April 2026)
+
+### Visual Redesign
+- Hero section with larger serif logo (3.2rem italic) and descriptive sub-heading
+- Input fields moved into a single card with drop shadow for grouping clarity
+- Consistent spacing system using CSS custom properties (`--gap`, `--radius`, `--max-w`)
+- Fully mobile-responsive layout with adjusted padding and font sizes at 480px breakpoint
+
+### Copy Updates
+- Hero headline: *"One small action for the moment you are in."*
+- Description: *"Choose where you are, how much energy you have, and how much time you have. Drift gives you one low-friction action — not a list."*
+- Input card label: *"Start with your current state."*
+- Microcopy added under each field to guide honest selection
+
+### Breathing Circle Animation
+- A slow pulsing circle (4-second `breathe` keyframe) replaces static loading text
+- Scales from 0.82× to 1.25× opacity while fading to communicate calm, not urgency
+- Displays during the intentional 5-second pause before results appear
+
+### Tiny First Step
+- New field returned by the AI: the smallest possible starting action
+- Added to system prompt in `generate.js`; parsed with `/Tiny first step:\s*([\s\S]+)/i`
+- Displayed in italics in the result card, between "Why this fits" and trust calibration
+
+### Trust Calibration
+- *"This is a suggestion, not a requirement."* shown below the result in faint italic
+- Positioned intentionally after the action, not before, so it doesn't undercut the suggestion
+
+### Feedback with localStorage
+- "This helped" increments `drift_positive_count` in localStorage
+- "Not right now" increments `drift_negative_count` in localStorage
+- Confirmation message appears inline: *"Saved. Drift will keep this kind of action in mind."*
+
+### Expandable Memory Section
+- Toggle button replaces always-visible memory hint
+- Opens to show: location, energy, time, last action, and feedback counts
+- Uses `.hidden` CSS class toggle — no extra dependencies
+- Refreshes content each time it is opened
+
+### Calm Error Card
+- Replaces raw red error text with a styled card: *"Something didn't connect."*
+- Notes that the previous result remains visible if one exists
+- No technical error strings shown to the user
+
+### Memory Schema (updated)
+```json
+{
+  "drift_location":       "commuting",
+  "drift_energy":         "low",
+  "drift_time":           "5–15 minutes",
+  "drift_last_action":    "Close your eyes and listen to a single song you love.",
+  "drift_last_why":       "Low energy and limited time make passive listening ideal.",
+  "drift_last_tiny_step": "Put in your headphones right now.",
+  "drift_positive_count": "3",
+  "drift_negative_count": "1"
+}
+```

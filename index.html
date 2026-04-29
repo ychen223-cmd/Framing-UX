@@ -3,22 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Drift — Use your time with intention</title>
+  <title>Drift — One small action</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
 
   <style>
     :root {
-      --bg:       #f5f4f0;
-      --ink:      #111110;
-      --muted:    #777772;
-      --border:   #d6d5d0;
-      --selected: #111110;
-      --sel-text: #f5f4f0;
-      --card-bg:  #ffffff;
-      --radius:   6px;
-      --gap:      1.5rem;
+      --bg:        #F3FAF5;
+      --bg-end:    #EAF4ED;
+      --ink:       #263A31;
+      --muted:     #6F7F75;
+      --faint:     #A4B5AA;
+      --border:    #DCE8DF;
+      --accent:    #7FA88B;
+      --accent-lt: #EAF4ED;
+      --btn-bg:    #4F705C;
+      --btn-hover: #42614F;
+      --btn-text:  #FFFFFF;
+      --card-bg:   #FBFFFC;
+      --highlight: #DDECE2;
+      --sel-chip:  #DDECE2;
+      --sel-text:  #2F4A3A;
+      --err-col:   #A87463;
+      --err-lt:    #F5EDE9;
+      --err-bdr:   #E0CCC5;
+      --radius:    14px;
+      --gap:       1.75rem;
+      --max-w:     520px;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,302 +38,588 @@
     body {
       font-family: 'DM Mono', monospace;
       font-weight: 300;
-      background: var(--bg);
+      background: linear-gradient(170deg, var(--bg) 0%, var(--bg-end) 100%);
+      background-attachment: fixed;
       color: var(--ink);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 3rem 1.25rem 5rem;
+      padding: 5rem 1.25rem 8rem;
     }
 
+    /* ── HERO ─────────────────────────────────────────── */
     header {
       width: 100%;
-      max-width: 480px;
-      margin-bottom: 2.5rem;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 1.5rem;
+      max-width: var(--max-w);
+      margin-bottom: 1rem;
     }
 
     .logo {
       font-family: 'DM Serif Display', serif;
       font-style: italic;
-      font-size: 2.4rem;
-      letter-spacing: -0.02em;
+      font-size: 3.2rem;
+      letter-spacing: -0.03em;
       line-height: 1;
-      margin-bottom: 0.55rem;
+      margin-bottom: 0.65rem;
     }
 
-    .tagline {
-      font-size: 0.78rem;
+    .hero-sub {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.1rem;
+      color: var(--accent);
+      line-height: 1.45;
+    }
+
+    .hero-desc {
+      width: 100%;
+      max-width: var(--max-w);
+      margin-bottom: 2.5rem;
+      margin-top: 1.1rem;
+    }
+
+    .hero-desc p {
+      font-size: 0.8rem;
       color: var(--muted);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
+      line-height: 1.8;
     }
 
+    .product-line {
+      font-size: 0.7rem;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      margin-top: 0.65rem;
+      opacity: 0.85;
+    }
+
+    /* ── MAIN ─────────────────────────────────────────── */
     main {
       width: 100%;
-      max-width: 480px;
+      max-width: var(--max-w);
       display: flex;
       flex-direction: column;
       gap: var(--gap);
     }
 
-    /* ── FIELD GROUPS ────────────────────────────── */
+    /* ── INPUT CARD ───────────────────────────────────── */
+    .input-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+      box-shadow: 0 2px 20px rgba(79,112,92,0.09);
+    }
+
+    .input-card-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--faint);
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── FIELDS ───────────────────────────────────────── */
     .field {
       display: flex;
       flex-direction: column;
-      gap: 0.65rem;
+      gap: 0.5rem;
     }
 
     .field-label {
-      font-size: 0.68rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: var(--ink);
+    }
+
+    .field-hint {
+      font-size: 0.64rem;
+      color: var(--faint);
+      line-height: 1.5;
     }
 
     .options {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 0.45rem;
+      margin-top: 0.1rem;
     }
 
     .opt-btn {
       font-family: 'DM Mono', monospace;
       font-weight: 300;
-      font-size: 0.8rem;
-      padding: 0.45rem 0.9rem;
+      font-size: 0.77rem;
+      padding: 0.42rem 0.95rem;
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: 999px;
       background: transparent;
       color: var(--ink);
       cursor: pointer;
       transition: background 0.15s, border-color 0.15s, color 0.15s;
       outline: none;
+      line-height: 1.4;
     }
-    .opt-btn:hover         { border-color: var(--ink); }
-    .opt-btn.selected      { background: var(--selected); border-color: var(--selected); color: var(--sel-text); }
-    .opt-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    .opt-btn:hover         { border-color: var(--accent); background: var(--accent-lt); }
+    .opt-btn.selected      { background: var(--sel-chip); border-color: var(--accent); color: var(--sel-text); font-weight: 400; }
+    .opt-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-    /* ── SUBMIT BUTTON ───────────────────────────── */
+    /* ── VALIDATION + SUBMIT ──────────────────────────── */
+    #validation-msg {
+      font-size: 0.71rem;
+      color: var(--muted);
+      display: none;
+    }
+
     #get-action-btn {
       font-family: 'DM Mono', monospace;
       font-weight: 400;
-      font-size: 0.85rem;
-      letter-spacing: 0.06em;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
-      padding: 0.85rem 1.5rem;
-      background: var(--ink);
-      color: var(--sel-text);
+      padding: 1rem 1.5rem;
+      background: var(--btn-bg);
+      color: var(--btn-text);
       border: none;
-      border-radius: var(--radius);
+      border-radius: 8px;
       cursor: pointer;
       width: 100%;
-      margin-top: 0.5rem;
-      transition: opacity 0.2s;
+      margin-top: 0.1rem;
+      transition: background 0.2s;
     }
-    #get-action-btn:hover    { opacity: 0.82; }
-    #get-action-btn:active   { opacity: 0.65; }
-    #get-action-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    #get-action-btn:hover    { background: var(--btn-hover); }
+    #get-action-btn:active   { background: var(--btn-hover); opacity: 0.8; }
+    #get-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* ── MESSAGES ────────────────────────────────── */
-    #validation-msg {
-      font-size: 0.75rem;
-      color: var(--muted);
-      display: none;
-    }
-
-    #error-msg {
-      display: none;
-      font-size: 0.78rem;
-      color: #b00;
-      padding: 0.75rem 1rem;
-      border: 1px solid #e0b0b0;
-      border-radius: var(--radius);
-      background: #fff5f5;
-    }
-
+    /* ── LOADING ──────────────────────────────────────── */
     #loading-indicator {
       display: none;
-      font-size: 0.78rem;
-      color: var(--muted);
-      padding: 1rem 0;
+      padding: 3.5rem 0;
       text-align: center;
-      letter-spacing: 0.06em;
+      animation: fadeIn 0.5s ease both;
     }
-    .blink { animation: blink 1.1s step-start infinite; }
-    @keyframes blink { 50% { opacity: 0; } }
 
-    /* ── RESULT CARD ─────────────────────────────── */
+    .breathe-circle {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin: 0 auto 2rem;
+      animation: breathe 5s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(0.75); opacity: 0.2; }
+      50%       { transform: scale(1.2);  opacity: 0.65; }
+    }
+
+    .loading-main {
+      font-family: 'DM Serif Display', serif;
+      font-style: italic;
+      font-size: 1.45rem;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+    }
+
+    .loading-sub {
+      font-size: 0.7rem;
+      color: var(--faint);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── ANIMATIONS ───────────────────────────────────── */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── ERROR CARD ───────────────────────────────────── */
+    #error-card {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+      text-align: center;
+      background: var(--err-lt);
+      border: 1px solid var(--err-bdr);
+      border-radius: var(--radius);
+      padding: 2.5rem 2rem;
+      box-shadow: none;
+      animation: fadeIn 0.4s ease both;
+    }
+
+    .error-dash {
+      font-family: 'DM Serif Display', serif;
+      font-style: italic;
+      font-size: 2rem;
+      color: var(--err-col);
+      opacity: 0.5;
+      line-height: 1;
+    }
+
+    .error-title {
+      font-family: 'DM Serif Display', serif;
+      font-style: italic;
+      font-size: 1.1rem;
+      color: var(--err-col);
+    }
+
+    .error-note {
+      font-size: 0.71rem;
+      color: #8A6355;
+      line-height: 1.65;
+      max-width: 300px;
+    }
+
+    /* ── RESULT CARD ──────────────────────────────────── */
     #result-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1.5rem;
+      padding: 2.5rem;
       display: none;
       flex-direction: column;
-      gap: 1rem;
-      animation: fadeUp 0.35s ease both;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to   { opacity: 1; transform: translateY(0);   }
+      gap: 1.6rem;
+      box-shadow: 0 4px 32px rgba(79,112,92,0.12);
+      animation: fadeUp 0.5s ease both;
     }
 
-    .result-action-label,
-    .result-why-label {
-      font-size: 0.68rem;
-      letter-spacing: 0.1em;
+    .result-framing {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 0.2rem;
+      color: var(--faint);
     }
 
     #result-action {
       font-family: 'DM Serif Display', serif;
-      font-size: 1.35rem;
+      font-size: 1.55rem;
       line-height: 1.35;
+      color: var(--ink);
+    }
+
+    .result-label {
+      font-size: 0.63rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin-bottom: 0.3rem;
     }
 
     #result-why {
-      font-size: 0.82rem;
+      font-size: 0.81rem;
       color: var(--muted);
-      line-height: 1.6;
+      line-height: 1.7;
+    }
+
+    #result-tiny-step {
+      font-size: 0.81rem;
+      color: var(--ink);
+      line-height: 1.7;
+      font-style: italic;
     }
 
     .card-divider { border: none; border-top: 1px solid var(--border); }
 
+    .trust-line {
+      font-size: 0.67rem;
+      color: var(--faint);
+      font-style: italic;
+      letter-spacing: 0.02em;
+    }
+
+    /* ── FEEDBACK ─────────────────────────────────────── */
     .feedback-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
     .feedback-btn {
       font-family: 'DM Mono', monospace;
       font-weight: 300;
       font-size: 0.72rem;
-      padding: 0.35rem 0.75rem;
+      padding: 0.4rem 0.85rem;
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: 999px;
       background: transparent;
       color: var(--muted);
       cursor: pointer;
-      transition: border-color 0.15s, color 0.15s;
+      transition: border-color 0.18s, color 0.18s, background 0.18s;
     }
-    .feedback-btn:hover { border-color: var(--ink); color: var(--ink); }
+    .feedback-btn:hover    { border-color: var(--accent); color: var(--sel-text); background: var(--highlight); }
+    .feedback-btn:disabled { opacity: 0.4; cursor: default; }
 
-    /* ── MEMORY HINT + CLEAR BUTTON ────────────── */
-    .memory-hint {
-      font-size: 0.68rem;
-      color: var(--border);
-      margin-top: 2rem;
-      letter-spacing: 0.02em;
+    #feedback-response {
+      font-size: 0.71rem;
+      color: var(--muted);
+      font-style: italic;
+      display: none;
+      animation: fadeIn 0.3s ease both;
     }
 
+    /* ── TRY AGAIN ────────────────────────────────────── */
+    #btn-try-again {
+      font-family: 'DM Mono', monospace;
+      font-weight: 300;
+      font-size: 0.72rem;
+      padding: 0.65rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      letter-spacing: 0.04em;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    #btn-try-again:hover    { border-color: var(--accent); background: var(--highlight); }
+    #btn-try-again:disabled { opacity: 0.35; cursor: not-allowed; }
 
-    #btn-clear-memory {
+    /* ── MEMORY SECTION ───────────────────────────────── */
+    .memory-section {
+      margin-top: 0.25rem;
+    }
+
+    #btn-memory-toggle {
       font-family: 'DM Mono', monospace;
       font-weight: 300;
       font-size: 0.65rem;
-      color: var(--border);
-      letter-spacing: 0.06em;
+      color: var(--faint);
+      letter-spacing: 0.07em;
       text-transform: uppercase;
       background: none;
       border: none;
       cursor: pointer;
-      margin-top: 2rem;
+      transition: color 0.15s;
+      padding: 0;
+    }
+    #btn-memory-toggle:hover { color: var(--muted); }
+
+    .memory-content {
+      margin-top: 1rem;
+      background: var(--accent-lt);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      animation: fadeIn 0.3s ease both;
+    }
+
+    .memory-content.hidden { display: none; }
+
+    .memory-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .memory-item-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--faint);
+    }
+
+    .memory-item-value {
+      font-size: 0.77rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .memory-empty {
+      font-size: 0.74rem;
+      color: var(--faint);
+      font-style: italic;
+    }
+
+    #btn-clear-memory {
+      font-family: 'DM Mono', monospace;
+      font-weight: 300;
+      font-size: 0.63rem;
+      color: var(--faint);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      background: none;
+      border: none;
+      border-top: 1px solid var(--border);
+      cursor: pointer;
+      padding: 0.9rem 0 0;
+      text-align: left;
+      width: 100%;
       transition: color 0.15s;
     }
-    #btn-clear-memory:hover { color: var(--muted); }
+    #btn-clear-memory:hover { color: var(--ink); }
 
+    /* ── FOOTER ───────────────────────────────────────── */
     footer {
-      margin-top: 1.5rem;
-      font-size: 0.65rem;
-      color: var(--border);
-      letter-spacing: 0.06em;
+      margin-top: 3.5rem;
+      font-size: 0.62rem;
+      color: var(--faint);
+      letter-spacing: 0.07em;
       text-transform: uppercase;
+      width: 100%;
+      max-width: var(--max-w);
+    }
+
+    /* ── RESPONSIVE ───────────────────────────────────── */
+    @media (max-width: 480px) {
+      body { padding: 3.5rem 1rem 6rem; }
+      .logo { font-size: 2.6rem; }
+      .input-card { padding: 1.75rem; }
+      #result-card { padding: 1.75rem; }
     }
   </style>
 </head>
 <body>
 
+  <!-- HERO -->
   <header>
     <h1 class="logo">Drift</h1>
-    <p class="tagline">One moment. One action. No scrolling.</p>
+    <p class="hero-sub">One small action for the moment you are in.</p>
   </header>
+
+  <div class="hero-desc">
+    <p>Choose where you are, how much energy you have, and how much time you have. Drift gives you one low-friction action — not a list.</p>
+    <p class="product-line">No prompt writing. No long list. Just one small action.</p>
+  </div>
 
   <main>
 
-    <!-- INPUT 1 -->
-    <div class="field">
-      <span class="field-label">Where are you?</span>
-      <div class="options" role="group" aria-label="Location">
-        <button class="opt-btn" data-group="location" data-value="home">Home</button>
-        <button class="opt-btn" data-group="location" data-value="office">Office</button>
-        <button class="opt-btn" data-group="location" data-value="commuting">Commuting</button>
-        <button class="opt-btn" data-group="location" data-value="in between places">In between places</button>
+    <!-- INPUT CARD -->
+    <div class="input-card">
+      <p class="input-card-label">Start with your current state.</p>
+
+      <!-- WHERE -->
+      <div class="field">
+        <span class="field-label">Where are you?</span>
+        <p class="field-hint">Pick the closest match.</p>
+        <div class="options" role="group" aria-label="Location">
+          <button class="opt-btn" data-group="location" data-value="home">Home</button>
+          <button class="opt-btn" data-group="location" data-value="office">Office</button>
+          <button class="opt-btn" data-group="location" data-value="commuting">Commuting</button>
+          <button class="opt-btn" data-group="location" data-value="in between places">In between</button>
+        </div>
       </div>
+
+      <!-- ENERGY -->
+      <div class="field">
+        <span class="field-label">Energy level</span>
+        <p class="field-hint">How you actually feel — not how you'd like to feel.</p>
+        <div class="options" role="group" aria-label="Energy level">
+          <button class="opt-btn" data-group="energy" data-value="very low">Very low</button>
+          <button class="opt-btn" data-group="energy" data-value="low">Low</button>
+          <button class="opt-btn" data-group="energy" data-value="medium">Medium</button>
+        </div>
+      </div>
+
+      <!-- TIME -->
+      <div class="field">
+        <span class="field-label">Time available</span>
+        <p class="field-hint">A rough guess is fine.</p>
+        <div class="options" role="group" aria-label="Time available">
+          <button class="opt-btn" data-group="time" data-value="under 5 minutes">Under 5 min</button>
+          <button class="opt-btn" data-group="time" data-value="5–15 minutes">5–15 min</button>
+          <button class="opt-btn" data-group="time" data-value="15–30 minutes">15–30 min</button>
+          <button class="opt-btn" data-group="time" data-value="30+ minutes">30+ min</button>
+        </div>
+      </div>
+
+      <p id="validation-msg">↑ Please make a selection in each section.</p>
+
+      <button id="get-action-btn">Get my action</button>
     </div>
 
-    <!-- INPUT 2 -->
-    <div class="field">
-      <span class="field-label">Energy level</span>
-      <div class="options" role="group" aria-label="Energy level">
-        <button class="opt-btn" data-group="energy" data-value="very low">Very low</button>
-        <button class="opt-btn" data-group="energy" data-value="low">Low</button>
-        <button class="opt-btn" data-group="energy" data-value="medium">Medium</button>
-      </div>
+    <!-- LOADING STATE -->
+    <div id="loading-indicator">
+      <div class="breathe-circle"></div>
+      <p class="loading-main">Take a breath.</p>
+      <p class="loading-sub">Finding something small for you.</p>
     </div>
 
-    <!-- INPUT 3 -->
-    <div class="field">
-      <span class="field-label">Time available</span>
-      <div class="options" role="group" aria-label="Time available">
-        <button class="opt-btn" data-group="time" data-value="under 5 minutes">Under 5 min</button>
-        <button class="opt-btn" data-group="time" data-value="5–15 minutes">5–15 min</button>
-        <button class="opt-btn" data-group="time" data-value="15–30 minutes">15–30 min</button>
-        <button class="opt-btn" data-group="time" data-value="30+ minutes">30+ min</button>
-      </div>
+    <!-- CALM ERROR CARD -->
+    <div id="error-card">
+      <p class="error-dash">—</p>
+      <p class="error-title">Something didn't connect.</p>
+      <p class="error-note">Your last suggestion is still shown below if you had one. Try again in a moment.</p>
     </div>
 
-    <p id="validation-msg">↑ Please select one option in each section.</p>
-
-    <button id="get-action-btn">Get my action</button>
-
-    <div id="loading-indicator">Thinking<span class="blink">...</span></div>
-    <div id="error-msg"></div>
-
+    <!-- RESULT CARD -->
     <div id="result-card" role="region" aria-live="polite">
-      <div>
-        <p class="result-action-label">Action</p>
-        <p id="result-action">—</p>
-      </div>
+      <p class="result-framing">Here's one gentle suggestion</p>
+      <p id="result-action">—</p>
       <hr class="card-divider" />
       <div>
-        <p class="result-why-label">Why this fits</p>
+        <p class="result-label">Why this fits</p>
         <p id="result-why">—</p>
       </div>
       <hr class="card-divider" />
+      <div>
+        <p class="result-label">Tiny first step</p>
+        <p id="result-tiny-step">—</p>
+      </div>
+      <hr class="card-divider" />
+      <p class="trust-line">This is a suggestion, not a requirement.</p>
       <div class="feedback-row">
-        <button class="feedback-btn" id="btn-worked">✓ This worked</button>
-        <button class="feedback-btn" id="btn-not-right">✗ Not right for this moment</button>
+        <button class="feedback-btn" id="btn-worked">✓ This helped</button>
+        <button class="feedback-btn" id="btn-not-right">✗ Not right now</button>
+      </div>
+      <p id="feedback-response"></p>
+      <button id="btn-try-again">Try another suggestion →</button>
+    </div>
+
+    <!-- MEMORY SECTION -->
+    <div class="memory-section">
+      <button id="btn-memory-toggle">What Drift remembers ↓</button>
+      <div class="memory-content hidden" id="memory-content">
+        <div id="memory-list"></div>
+        <button id="btn-clear-memory">Clear all memory</button>
       </div>
     </div>
 
   </main>
 
-  <p class="memory-hint">Your selections and last result are saved on this device.</p>
-  <button id="btn-clear-memory">Clear memory</button>
-
-  <footer>Drift — UX Prototype · Powered by Gemini</footer>
+  <footer>Drift · UX Prototype · Powered by Groq</footer>
 
   <script>
     /* ═══════════════════════════════════════════════
        STATE
     ═══════════════════════════════════════════════ */
-    const selections = {
-      location: null,
-      energy:   null,
-      time:     null,
-    };
+    const selections = { location: null, energy: null, time: null };
+
+
+    /* ═══════════════════════════════════════════════
+       RECENT ACTIONS HELPERS
+       Stores last 3 suggestions as JSON in localStorage.
+       Used to ask the model for variety on "Try again".
+    ═══════════════════════════════════════════════ */
+    function getRecentActions() {
+      try {
+        var raw = localStorage.getItem('drift_recent_actions');
+        if (!raw) return [];
+        var arr = JSON.parse(raw);
+        return Array.isArray(arr) ? arr : [];
+      } catch(e) { return []; }
+    }
+
+    function addRecentAction(action, why, tinyStep) {
+      try {
+        var recent = getRecentActions();
+        recent.unshift({ action: action, why: why, tinyStep: tinyStep || '' });
+        if (recent.length > 3) recent = recent.slice(0, 3);
+        localStorage.setItem('drift_recent_actions', JSON.stringify(recent));
+        // Keep separate last_* keys in sync for restoreState() on page load
+        localStorage.setItem('drift_last_action',    action);
+        localStorage.setItem('drift_last_why',       why);
+        localStorage.setItem('drift_last_tiny_step', tinyStep || '');
+      } catch(e) {}
+    }
 
 
     /* ═══════════════════════════════════════════════
@@ -329,17 +627,10 @@
     ═══════════════════════════════════════════════ */
     document.querySelectorAll('.opt-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const group = btn.dataset.group;
-        const value = btn.dataset.value;
-
+        const { group, value } = btn.dataset;
         selections[group] = value;
-
-        // localStorage — save each selection as user picks it
-        try { localStorage.setItem(`drift_${group}`, value); } catch(e) {}
-
-        document.querySelectorAll(`.opt-btn[data-group="${group}"]`).forEach(b => {
-          b.classList.remove('selected');
-        });
+        try { localStorage.setItem('drift_' + group, value); } catch(e) {}
+        document.querySelectorAll('.opt-btn[data-group="' + group + '"]').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
         document.getElementById('validation-msg').style.display = 'none';
       });
@@ -351,18 +642,31 @@
     ═══════════════════════════════════════════════ */
     function showLoading(on) {
       document.getElementById('loading-indicator').style.display = on ? 'block' : 'none';
-      document.getElementById('get-action-btn').disabled = on;
+      document.getElementById('get-action-btn').disabled  = on;
+      document.getElementById('btn-try-again').disabled   = on;
     }
 
-    function showError(msg) {
-      const el = document.getElementById('error-msg');
-      el.textContent = msg;
-      el.style.display = msg ? 'block' : 'none';
+    function showErrorCard(on) {
+      document.getElementById('error-card').style.display = on ? 'flex' : 'none';
     }
 
-    function showResultCard(action, why) {
-      document.getElementById('result-action').textContent = action;
-      document.getElementById('result-why').textContent    = why;
+    function resetFeedbackButtons() {
+      const worked   = document.getElementById('btn-worked');
+      const notRight = document.getElementById('btn-not-right');
+      worked.textContent   = '✓ This helped';
+      worked.disabled      = false;
+      notRight.textContent = '✗ Not right now';
+      notRight.disabled    = false;
+      const resp = document.getElementById('feedback-response');
+      resp.textContent  = '';
+      resp.style.display = 'none';
+    }
+
+    function showResultCard(action, why, tinyStep) {
+      document.getElementById('result-action').textContent    = action;
+      document.getElementById('result-why').textContent       = why;
+      document.getElementById('result-tiny-step').textContent = tinyStep || '—';
+      resetFeedbackButtons();
       const card = document.getElementById('result-card');
       card.style.animation = 'none';
       card.offsetHeight; // trigger reflow to replay animation
@@ -373,139 +677,200 @@
 
 
     /* ═══════════════════════════════════════════════
-       MAIN BUTTON
-       Sends the 3 selections to the Netlify serverless
-       function, which calls Gemini server-side using a
-       secret key. No API key is handled in the browser.
+       REQUEST A SUGGESTION
+       Shared by the main button and "Try again".
+       Calls Netlify function → Groq API.
+       Includes a 5-second intentional pause.
     ═══════════════════════════════════════════════ */
-    document.getElementById('get-action-btn').addEventListener('click', async () => {
-
-      // Need all 3 selections — no API key required from the user
+    async function requestSuggestion() {
       if (!selections.location || !selections.energy || !selections.time) {
         document.getElementById('validation-msg').style.display = 'block';
         return;
       }
 
-      showError('');
+      showErrorCard(false);
       showLoading(true);
-      // Note: we intentionally do NOT hide the result card here.
+      // Note: we do NOT hide the result card here.
       // If the request fails, the previously saved result stays visible.
 
       try {
-        // POST the 3 selections to the Netlify function.
-        // The function calls Gemini with a server-side secret — nothing secret in this request.
+        // 5-second intentional delay — creates a calm pause before the result appears
+        await new Promise(r => setTimeout(r, 5000));
+
+        // Collect the last 3 action strings to send for variety
+        var recentActionStrings = getRecentActions().map(function(r) { return r.action; });
+
         const response = await fetch('/.netlify/functions/generate', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
           body:    JSON.stringify({
-            location: selections.location,
-            energy:   selections.energy,
-            time:     selections.time,
+            location:      selections.location,
+            energy:        selections.energy,
+            time:          selections.time,
+            recentActions: recentActionStrings,
           }),
         });
 
-        // If the server returned an error, surface its message
         if (!response.ok) {
           const err = await response.json().catch(() => ({}));
-          throw new Error(err?.error || `Server error ${response.status}`);
+          throw new Error(err.error || ('Server error ' + response.status));
         }
 
-        // The function returns { action, why } — already parsed, nothing secret
-        const { action, why } = await response.json();
+        const { action, why, tinyStep } = await response.json();
 
         // We have a valid new result — safe to replace the old card now
         document.getElementById('result-card').style.display = 'none';
-        showResultCard(action, why);
+        showResultCard(action, why, tinyStep);
 
-        // localStorage — persist the new result so it survives a refresh.
-        // Only written on success; a failed request never overwrites the last good result.
-        try {
-          localStorage.setItem('drift_last_action', action);
-          localStorage.setItem('drift_last_why',    why);
-        } catch(e) {}
+        // Save to localStorage — prepends to recent actions list, keeps last 3
+        addRecentAction(action, why, tinyStep);
 
       } catch (err) {
         // Request failed — old result card (if any) remains visible
-        showError(`Something went wrong: ${err.message}`);
+        showErrorCard(true);
         console.error(err);
       } finally {
         showLoading(false);
       }
-    });
+    }
+
+
+    /* ═══════════════════════════════════════════════
+       MAIN BUTTON + TRY AGAIN
+    ═══════════════════════════════════════════════ */
+    document.getElementById('get-action-btn').addEventListener('click', requestSuggestion);
+    document.getElementById('btn-try-again').addEventListener('click', requestSuggestion);
 
 
     /* ═══════════════════════════════════════════════
        FEEDBACK BUTTONS
     ═══════════════════════════════════════════════ */
     document.getElementById('btn-worked').addEventListener('click', function () {
-      console.log('Feedback: worked', selections);
-      this.textContent = '✓ Noted!';
-      this.disabled = true;
+      this.textContent = '✓ Glad it helped';
+      this.disabled    = true;
+      document.getElementById('btn-not-right').disabled = true;
+
+      try {
+        var count = parseInt(localStorage.getItem('drift_positive_count') || '0') + 1;
+        localStorage.setItem('drift_positive_count', count);
+      } catch(e) {}
+
+      var resp = document.getElementById('feedback-response');
+      resp.textContent   = 'Saved. Drift will keep this kind of action in mind.';
+      resp.style.display = 'block';
     });
 
     document.getElementById('btn-not-right').addEventListener('click', function () {
-      console.log('Feedback: not right', selections);
       this.textContent = '✗ Noted';
-      this.disabled = true;
+      this.disabled    = true;
+      document.getElementById('btn-worked').disabled = true;
+
+      try {
+        var count = parseInt(localStorage.getItem('drift_negative_count') || '0') + 1;
+        localStorage.setItem('drift_negative_count', count);
+      } catch(e) {}
+
+      var resp = document.getElementById('feedback-response');
+      resp.textContent   = 'Noted. Try another if you like something different.';
+      resp.style.display = 'block';
     });
 
 
     /* ═══════════════════════════════════════════════
-       LOCALSTORAGE — RESTORE STATE ON PAGE LOAD
-       Reads saved selections and last result from
-       localStorage and re-applies them to the UI.
+       MEMORY TOGGLE
     ═══════════════════════════════════════════════ */
-    (function restoreState() {
-      // If localStorage is unavailable (sandboxed iframe, private mode, etc.)
-      // the whole block is skipped and the app starts fresh — no crash.
+    var memoryOpen = false;
+
+    document.getElementById('btn-memory-toggle').addEventListener('click', function () {
+      memoryOpen = !memoryOpen;
+      var content = document.getElementById('memory-content');
+      content.classList.toggle('hidden', !memoryOpen);
+      this.textContent = memoryOpen ? 'What Drift remembers ↑' : 'What Drift remembers ↓';
+      if (memoryOpen) renderMemory();
+    });
+
+    function renderMemory() {
+      var list = document.getElementById('memory-list');
+      list.innerHTML = '';
+      var hasAny = false;
+
       try {
+        // ── Current preferences ──────────────────────────
+        var prefItems = [
+          { label: 'Location', key: 'drift_location' },
+          { label: 'Energy',   key: 'drift_energy' },
+          { label: 'Time',     key: 'drift_time' },
+        ];
 
-        // ── Restore button selections ──────────────────────────────────────
-        // For each group, we only restore if the saved value matches an actual
-        // button in the DOM. Stale or malformed values are silently ignored.
-        ['location', 'energy', 'time'].forEach(group => {
-          const saved = localStorage.getItem(`drift_${group}`);
-          if (!saved || typeof saved !== 'string') return;
-
-          const btn = document.querySelector(
-            `.opt-btn[data-group="${group}"][data-value="${saved}"]`
-          );
-          if (!btn) return; // value doesn't match any button — discard it
-
-          selections[group] = saved;
-          btn.classList.add('selected');
+        prefItems.forEach(function (item) {
+          var val = localStorage.getItem(item.key);
+          if (val && val.trim()) {
+            hasAny = true;
+            var div = document.createElement('div');
+            div.className = 'memory-item';
+            div.innerHTML = '<span class="memory-item-label">' + item.label + '</span>'
+                          + '<span class="memory-item-value">' + val.trim() + '</span>';
+            list.appendChild(div);
+          }
         });
 
-        // ── Restore last result card ───────────────────────────────────────
-        // Only show the card if the saved action is a non-empty string.
-        const savedAction = localStorage.getItem('drift_last_action');
-        const savedWhy    = localStorage.getItem('drift_last_why');
-        const cleanAction = savedAction && savedAction.trim();
+        // ── Recent suggestions (last 3) ──────────────────
+        var recent = getRecentActions();
+        if (recent.length > 0) {
+          hasAny = true;
+          var heading = document.createElement('div');
+          heading.className = 'memory-item';
+          heading.style.marginTop = '0.4rem';
+          heading.innerHTML = '<span class="memory-item-label">Recent suggestions</span>';
+          list.appendChild(heading);
 
-        if (cleanAction) {
-          document.getElementById('result-action').textContent = cleanAction;
-          document.getElementById('result-why').textContent    = savedWhy ? savedWhy.trim() : '';
-          // Show without animation — this is a restore, not a fresh result
-          const card = document.getElementById('result-card');
-          card.style.animation = 'none';
-          card.style.display   = 'flex';
+          recent.forEach(function (r, i) {
+            var div = document.createElement('div');
+            div.className = 'memory-item';
+            div.style.paddingLeft = '0.75rem';
+            div.style.borderLeft = '2px solid var(--accent-lt)';
+            div.innerHTML = '<span class="memory-item-value">' + (r.action || '—') + '</span>';
+            list.appendChild(div);
+          });
         }
 
-      } catch(e) {
-        // localStorage read failed — app works normally
+        // ── Feedback counts ──────────────────────────────
+        var pos = parseInt(localStorage.getItem('drift_positive_count') || '0');
+        var neg = parseInt(localStorage.getItem('drift_negative_count') || '0');
+        if (pos > 0 || neg > 0) {
+          hasAny = true;
+          var div = document.createElement('div');
+          div.className = 'memory-item';
+          div.style.marginTop = '0.4rem';
+          div.innerHTML = '<span class="memory-item-label">Your feedback</span>'
+                        + '<span class="memory-item-value">' + pos + ' helped · ' + neg + ' not right</span>';
+          list.appendChild(div);
+        }
+      } catch(e) {}
+
+      if (!hasAny) {
+        list.innerHTML = '<p class="memory-empty">Nothing stored yet.</p>';
       }
-    })();
+
+      // Device notice
+      var notice = document.createElement('p');
+      notice.className = 'memory-empty';
+      notice.style.marginTop = '0.75rem';
+      notice.textContent = 'Stored only on this device. Never sent anywhere.';
+      list.appendChild(notice);
+    }
 
 
     /* ═══════════════════════════════════════════════
-       LOCALSTORAGE — CLEAR MEMORY BUTTON
-       Removes all drift_* keys and resets the UI
-       back to its blank initial state.
+       CLEAR MEMORY
     ═══════════════════════════════════════════════ */
-    document.getElementById('btn-clear-memory').addEventListener('click', () => {
+    document.getElementById('btn-clear-memory').addEventListener('click', function () {
       try {
-        ['location', 'energy', 'time', 'last_action', 'last_why'].forEach(key => {
-          localStorage.removeItem(`drift_${key}`);
+        ['location', 'energy', 'time',
+         'last_action', 'last_why', 'last_tiny_step',
+         'recent_actions',
+         'positive_count', 'negative_count'].forEach(function (key) {
+          localStorage.removeItem('drift_' + key);
         });
       } catch(e) {}
 
@@ -513,21 +878,47 @@
       selections.energy   = null;
       selections.time     = null;
 
-      document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('selected'));
+      document.querySelectorAll('.opt-btn').forEach(function (b) { b.classList.remove('selected'); });
 
-      const card = document.getElementById('result-card');
+      var card = document.getElementById('result-card');
       card.style.display = 'none';
-      document.getElementById('result-action').textContent = '—';
-      document.getElementById('result-why').textContent    = '—';
-
-      const worked   = document.getElementById('btn-worked');
-      const notRight = document.getElementById('btn-not-right');
-      worked.textContent   = '✓ This worked';
-      worked.disabled      = false;
-      notRight.textContent = '✗ Not right for this moment';
-      notRight.disabled    = false;
+      document.getElementById('result-action').textContent    = '—';
+      document.getElementById('result-why').textContent       = '—';
+      document.getElementById('result-tiny-step').textContent = '—';
+      resetFeedbackButtons();
+      renderMemory();
     });
 
+
+    /* ═══════════════════════════════════════════════
+       RESTORE STATE ON PAGE LOAD
+    ═══════════════════════════════════════════════ */
+    (function restoreState() {
+      try {
+        ['location', 'energy', 'time'].forEach(function (group) {
+          var saved = localStorage.getItem('drift_' + group);
+          if (!saved) return;
+          var btn = document.querySelector('.opt-btn[data-group="' + group + '"][data-value="' + saved + '"]');
+          if (!btn) return;
+          selections[group] = saved;
+          btn.classList.add('selected');
+        });
+
+        var savedAction   = localStorage.getItem('drift_last_action');
+        var savedWhy      = localStorage.getItem('drift_last_why');
+        var savedTinyStep = localStorage.getItem('drift_last_tiny_step');
+        var cleanAction   = savedAction && savedAction.trim();
+
+        if (cleanAction) {
+          document.getElementById('result-action').textContent    = cleanAction;
+          document.getElementById('result-why').textContent       = savedWhy      ? savedWhy.trim()      : '';
+          document.getElementById('result-tiny-step').textContent = savedTinyStep ? savedTinyStep.trim() : '—';
+          var card = document.getElementById('result-card');
+          card.style.animation = 'none';
+          card.style.display   = 'flex';
+        }
+      } catch(e) {}
+    })();
   </script>
 </body>
 </html>

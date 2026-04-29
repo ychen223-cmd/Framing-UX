@@ -1,0 +1,9 @@
+# Local Netlify folder
+.netlify
+.env
+# macOS system files
+.DS_Store
+**/.DS_Store
+
+# Claude local working files
+.claude/

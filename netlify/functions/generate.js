@@ -1,20 +1,18 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // netlify/functions/generate.js
 //
-// This is a Netlify serverless function.
-// It runs on Netlify's servers — NOT in the user's browser.
-// Because it runs server-side, it can safely use the API key
-// stored as a Netlify environment variable (never exposed to users).
+// Netlify serverless function — runs on Netlify's servers, NOT in the browser.
+// The Groq API key is stored as a Netlify environment variable (GROQ_API_KEY)
+// and is never sent to or visible in the browser.
 //
-// HOW IT WORKS:
-//   1. The browser sends a POST request to /.netlify/functions/generate
-//   2. This function receives the 3 user selections (location, energy, time)
-//   3. It builds a prompt and calls the Gemini API using the secret key
-//   4. It sends back just { action, why } — nothing secret leaks to the browser
+// Flow:
+//   1. Browser POSTs { location, energy, time } to /.netlify/functions/generate
+//   2. This function reads GROQ_API_KEY from the server environment
+//   3. Calls the Groq API with those inputs
+//   4. Returns only { action, why } to the browser — nothing secret leaks
 // ─────────────────────────────────────────────────────────────────────────────
 
-// The system prompt lives here on the server (not in the browser).
-// Edit this text to change how the AI behaves.
+// The system prompt lives here on the server, not in the browser.
 const SYSTEM_PROMPT = `
 You are Intentional Leisure Advisor, a context-aware leisure design assistant.
 This system is designed for SINGLE-SHOT use, not open-ended chat.
@@ -35,129 +33,172 @@ Core rules:
 - Do not give multiple options
 - Do not use productivity or self-improvement framing
 - Do not assume ideal conditions
+- Every sentence must be complete and end with a period — never cut off mid-phrase
 
-Output format (use exactly this, no extra text):
-Action: [one complete sentence — must end with a period, never cut off mid-phrase]
+Output format (use exactly this structure, no extra text):
+Action: [one complete sentence ending with a period]
 Why this fits: [one complete sentence ending with a period]
+Tiny first step: [the smallest possible action to start right now — one short sentence ending with a period]
 `.trim();
 
 
+// ── MODEL ─────────────────────────────────────────────────────────────────────
+// Change this one line if you need to swap models.
+// Currently active Groq models (as of April 2026):
+//   llama-3.3-70b-versatile   ← best quality, used here
+//   llama-3.1-8b-instant      ← fastest, lower quality
+const GROQ_MODEL = 'llama-3.3-70b-versatile';
+
+
+// ── CALM FALLBACK ─────────────────────────────────────────────────────────────
+// Returned when the Groq API is unavailable, so the UI never shows a crash.
+const FALLBACK = {
+  action:   'Step away from your screen for two minutes and look at something in the distance.',
+  why:      'Even a brief visual break reduces eye strain and resets your focus.',
+  tinyStep: 'Stand up right now.',
+};
+
+
 // ── MAIN HANDLER ──────────────────────────────────────────────────────────────
-// Netlify calls exports.handler for every request to this function.
-// CommonJS syntax (not ES modules) — no package.json config needed.
 exports.handler = async function (event) {
 
-  // Only allow POST requests (the browser sends POST with user data)
-  if (event.httpMethod !== "POST") {
+  // Only allow POST requests
+  if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      body: JSON.stringify({ error: "Method not allowed. Use POST." }),
+      body: JSON.stringify({ error: 'Method not allowed. Use POST.' }),
     };
   }
 
-  // ── 1. READ THE API KEY FROM THE ENVIRONMENT ──────────────────────────────
-  // process.env.GEMINI_API_KEY reads the secret you set in Netlify's dashboard.
-  // It is NEVER sent to the browser — it only exists on the server side.
-  const apiKey = process.env.GEMINI_API_KEY;
+  // ── 1. READ THE API KEY FROM THE SERVER ENVIRONMENT ───────────────────────
+  const apiKey = process.env.GROQ_API_KEY;
+  console.log('[Drift] GROQ_API_KEY present:', !!apiKey);  // logs true/false, never the key
 
   if (!apiKey) {
-    // This means you forgot to set the environment variable in Netlify
+    console.error('[Drift] ERROR: GROQ_API_KEY is not set in environment.');
     return {
-      statusCode: 500,
-      body: JSON.stringify({ error: "Server is missing the GEMINI_API_KEY environment variable." }),
+      statusCode: 200,  // return 200 with fallback so UI stays calm
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(FALLBACK),
     };
   }
 
   // ── 2. PARSE THE REQUEST BODY ─────────────────────────────────────────────
-  // The browser sends JSON: { location, energy, time }
-  let location, energy, time;
+  let location, energy, time, recentActions;
   try {
     const body = JSON.parse(event.body);
-    location = body.location;
-    energy   = body.energy;
-    time     = body.time;
+    location      = body.location;
+    energy        = body.energy;
+    time          = body.time;
+    // recentActions: array of up to 3 recent action strings sent by the client
+    recentActions = Array.isArray(body.recentActions) ? body.recentActions.slice(0, 3) : [];
   } catch {
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: "Invalid JSON in request body." }),
+      body: JSON.stringify({ error: 'Invalid JSON in request body.' }),
     };
   }
 
-  // Make sure all three fields are present
   if (!location || !energy || !time) {
     return {
       statusCode: 400,
-      body: JSON.stringify({ error: "Missing one or more fields: location, energy, time." }),
+      body: JSON.stringify({ error: 'Missing required fields: location, energy, time.' }),
     };
   }
 
   // ── 3. BUILD THE USER PROMPT ──────────────────────────────────────────────
-  // Combines the 3 user inputs into a natural-language sentence for the AI.
-  const userPrompt = `I am currently ${location}. My energy level is ${energy}. I have ${time} available. What should I do instead of scrolling?`;
+  // If the client sent recent actions, append a hard avoid-list instruction.
+  let recentNote = '';
+  if (recentActions.length > 0) {
+    const list = recentActions.map((a, i) => `  ${i + 1}. ${a}`).join('\n');
+    recentNote = `\n\nIMPORTANT — variety required: The user has already seen these recent suggestions. Do NOT repeat or closely paraphrase any of them. Choose a clearly different type of low-friction leisure activity:\n${list}`;
+  }
 
-  // ── 4. CALL THE GEMINI API ────────────────────────────────────────────────
-  // Artificial 5-second delay before the API call
-  await new Promise(r => setTimeout(r, 5000));
+  const userPrompt = `I am currently ${location}. My energy level is ${energy}. I have ${time} available. What should I do instead of scrolling?${recentNote}`;
 
-  const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-  let rawText = "";
+  // ── 4. CALL THE GROQ API ──────────────────────────────────────────────────
+  let rawText = '';
   try {
-    const geminiResponse = await fetch(geminiEndpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    console.log('[Drift] Calling Groq with model:', GROQ_MODEL);
+
+    const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
       body: JSON.stringify({
-        system_instruction: {
-          parts: [{ text: SYSTEM_PROMPT }],
-        },
-        contents: [
-          {
-            role: "user",
-            parts: [{ text: userPrompt }],
-          },
+        model:       GROQ_MODEL,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user',   content: userPrompt },
         ],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 300,  // enough for two complete sentences with room to spare
-        },
+        temperature: 0.8,  // slightly higher for more variety across suggestions
+        max_tokens:  400,  // enough to ensure all three fields are complete
       }),
     });
 
-    if (!geminiResponse.ok) {
-      const errData = await geminiResponse.json().catch(() => ({}));
-      throw new Error(errData?.error?.message || `Gemini HTTP ${geminiResponse.status}`);
+    console.log('[Drift] Groq response status:', groqResponse.status);
+
+    if (!groqResponse.ok) {
+      const errData = await groqResponse.json().catch(() => ({}));
+      const errMsg  = errData?.error?.message || `Groq HTTP ${groqResponse.status}`;
+      console.error('[Drift] Groq API error:', errMsg);
+      // Return fallback instead of crashing with 502
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(FALLBACK),
+      };
     }
 
-    const data = await geminiResponse.json();
-    // Navigate the nested Gemini response to get the text string
-    rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    const data = await groqResponse.json();
+    rawText = data?.choices?.[0]?.message?.content ?? '';
+    console.log('[Drift] Raw response length:', rawText.length, 'chars');
 
   } catch (err) {
+    console.error('[Drift] Fetch error:', err.message);
+    // Network failure — return fallback instead of 502
     return {
-      statusCode: 502,
-      body: JSON.stringify({ error: `Gemini API error: ${err.message}` }),
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(FALLBACK),
     };
   }
 
   // ── 5. PARSE THE AI RESPONSE ──────────────────────────────────────────────
-  // Extract "Action:" and "Why this fits:" from the AI's text.
-  let action = rawText.trim();
-  let why    = "";
+  let action   = rawText.trim();
+  let why      = '';
+  let tinyStep = '';
 
-  // Capture everything between "Action:" and "Why this fits:" as the action.
-  // Using [\s\S]+? allows the action to span multiple lines without being cut off.
+  // Capture everything between "Action:" and "Why this fits:"
   const actionMatch = rawText.match(/Action:\s*([\s\S]+?)\s*(?:Why this fits:|$)/i);
   if (actionMatch) action = actionMatch[1].trim();
 
-  // Capture everything after "Why this fits:" to end of string.
-  const whyMatch = rawText.match(/Why this fits:\s*([\s\S]+)/i);
+  // Capture everything between "Why this fits:" and "Tiny first step:"
+  const whyMatch = rawText.match(/Why this fits:\s*([\s\S]+?)\s*(?:Tiny first step:|$)/i);
   if (whyMatch) why = whyMatch[1].trim();
 
-  // ── 6. RETURN THE RESULT TO THE BROWSER ──────────────────────────────────
-  // Only { action, why } is sent back — no API key, no raw prompt, nothing secret.
+  // Capture everything after "Tiny first step:"
+  const tinyStepMatch = rawText.match(/Tiny first step:\s*([\s\S]+)/i);
+  if (tinyStepMatch) tinyStep = tinyStepMatch[1].trim();
+
+  // If parsing failed entirely, use fallback
+  if (!action || action === rawText.trim()) {
+    console.warn('[Drift] Response parsing failed — using fallback. Raw:', rawText.slice(0, 100));
+    return {
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(FALLBACK),
+    };
+  }
+
+  console.log('[Drift] Successfully parsed response.');
+
+  // ── 6. RETURN ONLY THE SAFE RESULT ───────────────────────────────────────
   return {
     statusCode: 200,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action, why }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, why, tinyStep }),
   };
-}
+};
