@@ -52,7 +52,7 @@
     header {
       width: 100%;
       max-width: var(--max-w);
-      margin-bottom: 1rem;
+      margin-bottom: 0.65rem;
     }
 
     .logo {
@@ -74,14 +74,14 @@
     .hero-desc {
       width: 100%;
       max-width: var(--max-w);
-      margin-bottom: 2.5rem;
-      margin-top: 1.1rem;
+      margin-bottom: 2rem;
+      margin-top: 0.75rem;
     }
 
     .hero-desc p {
       font-size: 0.8rem;
       color: var(--muted);
-      line-height: 1.8;
+      line-height: 1.7;
     }
 
     .product-line {
@@ -101,32 +101,32 @@
       gap: var(--gap);
     }
 
-    /* ── INPUT CARD ───────────────────────────────────── */
+    /* ── INPUT AREA ───────────────────────────────────── */
     .input-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 2.25rem;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0;
       display: flex;
       flex-direction: column;
-      gap: 1.75rem;
-      box-shadow: 0 2px 20px rgba(79,112,92,0.09);
+      gap: 2rem;
+      box-shadow: none;
     }
 
-    .input-card-label {
-      font-size: 0.68rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--faint);
-      padding-bottom: 0.5rem;
-      border-bottom: 1px solid var(--border);
-    }
+    .input-card-label { display: none; }
 
     /* ── FIELDS ───────────────────────────────────────── */
     .field {
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
+      padding-bottom: 1.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .field--last {
+      border-bottom: none;
+      padding-bottom: 0;
     }
 
     .field-label {
@@ -380,6 +380,18 @@
     #btn-try-again:hover    { border-color: var(--accent); background: var(--highlight); }
     #btn-try-again:disabled { opacity: 0.35; cursor: not-allowed; }
 
+    /* ── SELECTION SUMMARY ────────────────────────────── */
+    .selection-summary {
+      font-size: 0.68rem;
+      color: var(--btn-bg);
+      letter-spacing: 0.02em;
+      padding: 0.55rem 0.8rem;
+      background: var(--highlight);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      display: none;
+    }
+
     /* ── MEMORY SECTION ───────────────────────────────── */
     .memory-section {
       margin-top: 0.25rem;
@@ -482,19 +494,18 @@
   <!-- HERO -->
   <header>
     <h1 class="logo">Drift</h1>
-    <p class="hero-sub">One small action for the moment you are in.</p>
+    <p class="hero-sub">Check in with this moment.</p>
   </header>
 
   <div class="hero-desc">
-    <p>Choose where you are, how much energy you have, and how much time you have. Drift gives you one low-friction action — not a list.</p>
-    <p class="product-line">No prompt writing. No long list. Just one small action.</p>
+    <p>Choose a few signals. Drift gives one small action.</p>
+    <p class="product-line">No prompt. No long list.</p>
   </div>
 
   <main>
 
-    <!-- INPUT CARD -->
+    <!-- INPUT AREA -->
     <div class="input-card">
-      <p class="input-card-label">Start with your current state.</p>
 
       <!-- WHERE -->
       <div class="field">
@@ -519,8 +530,32 @@
         </div>
       </div>
 
-      <!-- TIME -->
+      <!-- FEELING -->
       <div class="field">
+        <span class="field-label">How are you feeling?</span>
+        <p class="field-hint">A quick check-in, not a diagnosis.</p>
+        <div class="options" role="group" aria-label="Feeling">
+          <button class="opt-btn" data-group="feeling" data-value="anxious">Anxious</button>
+          <button class="opt-btn" data-group="feeling" data-value="bored">Bored</button>
+          <button class="opt-btn" data-group="feeling" data-value="restless">Restless</button>
+          <button class="opt-btn" data-group="feeling" data-value="numb">Numb</button>
+        </div>
+      </div>
+
+      <!-- NEED -->
+      <div class="field">
+        <span class="field-label">What do you need from this moment?</span>
+        <p class="field-hint">Choose the kind of rest you want right now.</p>
+        <div class="options" role="group" aria-label="Leisure need">
+          <button class="opt-btn" data-group="need" data-value="calm down">Calm down</button>
+          <button class="opt-btn" data-group="need" data-value="move a little">Move a little</button>
+          <button class="opt-btn" data-group="need" data-value="feel inspired">Feel inspired</button>
+          <button class="opt-btn" data-group="need" data-value="reconnect">Reconnect</button>
+        </div>
+      </div>
+
+      <!-- TIME -->
+      <div class="field field--last">
         <span class="field-label">Time available</span>
         <p class="field-hint">A rough guess is fine.</p>
         <div class="options" role="group" aria-label="Time available">
@@ -532,6 +567,10 @@
       </div>
 
       <p id="validation-msg">↑ Please make a selection in each section.</p>
+
+      <div id="selection-summary" class="selection-summary">
+        <span id="summary-text"></span>
+      </div>
 
       <button id="get-action-btn">Get my action</button>
     </div>
@@ -591,7 +630,7 @@
     /* ═══════════════════════════════════════════════
        STATE
     ═══════════════════════════════════════════════ */
-    const selections = { location: null, energy: null, time: null };
+    const selections = { location: null, energy: null, feeling: null, need: null, time: null };
 
 
     /* ═══════════════════════════════════════════════
@@ -622,6 +661,25 @@
     }
 
 
+    function updateSummary() {
+      var parts = [];
+      ['location', 'energy', 'feeling', 'need', 'time'].forEach(function (group) {
+        var btn = document.querySelector('.opt-btn[data-group="' + group + '"].selected');
+        if (btn) parts.push(btn.textContent.trim());
+      });
+      var el     = document.getElementById('selection-summary');
+      var textEl = document.getElementById('summary-text');
+      if (parts.length === 5) {
+        textEl.textContent = 'Right now: ' + parts.join(' · ');
+        el.style.display = 'block';
+      } else if (parts.length > 0) {
+        textEl.textContent = parts.join(' · ');
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
+      }
+    }
+
     /* ═══════════════════════════════════════════════
        OPTION BUTTONS
     ═══════════════════════════════════════════════ */
@@ -633,6 +691,7 @@
         document.querySelectorAll('.opt-btn[data-group="' + group + '"]').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
         document.getElementById('validation-msg').style.display = 'none';
+        updateSummary();
       });
     });
 
@@ -706,6 +765,8 @@
           body:    JSON.stringify({
             location:      selections.location,
             energy:        selections.energy,
+            feeling:       selections.feeling || 'unspecified feeling',
+            need:          selections.need || 'general reset',
             time:          selections.time,
             recentActions: recentActionStrings,
           }),
@@ -718,20 +779,79 @@
 
         const { action, why, tinyStep } = await response.json();
 
-        // We have a valid new result — safe to replace the old card now
-        document.getElementById('result-card').style.display = 'none';
-        showResultCard(action, why, tinyStep);
-
-        // Save to localStorage — prepends to recent actions list, keeps last 3
+        // Save to localStorage first (before any animation)
         addRecentAction(action, why, tinyStep);
+        resetFeedbackButtons();
+
+        // Hide old card, stop loading circle, then typewrite the new result
+        document.getElementById('result-card').style.display = 'none';
+        showLoading(false);
+        await typewriterReveal(action, why, tinyStep);
 
       } catch (err) {
         // Request failed — old result card (if any) remains visible
         showErrorCard(true);
         console.error(err);
       } finally {
+        // Safety net: ensure loading is always hidden
         showLoading(false);
       }
+    }
+
+
+    /* ═══════════════════════════════════════════════
+       TYPEWRITER REVEAL
+       Used only for new AI results — not for page-load
+       restore (which shows instantly from localStorage).
+    ═══════════════════════════════════════════════ */
+    function typewriteChars(el, text, ms) {
+      return new Promise(function (resolve) {
+        var i = 0;
+        function next() {
+          if (i >= text.length) { resolve(); return; }
+          el.textContent += text[i++];
+          setTimeout(next, ms);
+        }
+        next();
+      });
+    }
+
+    function pause(ms) {
+      return new Promise(function (r) { setTimeout(r, ms); });
+    }
+
+    async function typewriterReveal(action, why, tinyStep) {
+      var actionEl = document.getElementById('result-action');
+      var whyEl    = document.getElementById('result-why');
+      var tinyEl   = document.getElementById('result-tiny-step');
+
+      // Clear fields before showing the card so nothing old flashes
+      actionEl.textContent = '';
+      whyEl.textContent    = '';
+      tinyEl.textContent   = '';
+
+      // Show the card (reset animation so fadeUp replays)
+      var card = document.getElementById('result-card');
+      card.style.animation = 'none';
+      card.offsetHeight;               // force reflow
+      card.style.animation = '';
+      card.style.display   = 'flex';
+      card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      // Disable buttons while typing
+      document.getElementById('get-action-btn').disabled = true;
+      document.getElementById('btn-try-again').disabled  = true;
+
+      var MS = 14;  // ms per character — adjust for faster/slower feel
+      await typewriteChars(actionEl, action,          MS);
+      await pause(240);
+      await typewriteChars(whyEl,    why,             MS);
+      await pause(240);
+      await typewriteChars(tinyEl,   tinyStep || '—', MS);
+
+      // Re-enable buttons
+      document.getElementById('get-action-btn').disabled = false;
+      document.getElementById('btn-try-again').disabled  = false;
     }
 
 
@@ -799,6 +919,8 @@
         var prefItems = [
           { label: 'Location', key: 'drift_location' },
           { label: 'Energy',   key: 'drift_energy' },
+          { label: 'Feeling',  key: 'drift_feeling' },
+          { label: 'Need',     key: 'drift_need' },
           { label: 'Time',     key: 'drift_time' },
         ];
 
@@ -866,7 +988,7 @@
     ═══════════════════════════════════════════════ */
     document.getElementById('btn-clear-memory').addEventListener('click', function () {
       try {
-        ['location', 'energy', 'time',
+        ['location', 'energy', 'feeling', 'need', 'time',
          'last_action', 'last_why', 'last_tiny_step',
          'recent_actions',
          'positive_count', 'negative_count'].forEach(function (key) {
@@ -876,6 +998,8 @@
 
       selections.location = null;
       selections.energy   = null;
+      selections.feeling  = null;
+      selections.need     = null;
       selections.time     = null;
 
       document.querySelectorAll('.opt-btn').forEach(function (b) { b.classList.remove('selected'); });
@@ -895,7 +1019,7 @@
     ═══════════════════════════════════════════════ */
     (function restoreState() {
       try {
-        ['location', 'energy', 'time'].forEach(function (group) {
+        ['location', 'energy', 'feeling', 'need', 'time'].forEach(function (group) {
           var saved = localStorage.getItem('drift_' + group);
           if (!saved) return;
           var btn = document.querySelector('.opt-btn[data-group="' + group + '"][data-value="' + saved + '"]');
@@ -917,6 +1041,9 @@
           card.style.animation = 'none';
           card.style.display   = 'flex';
         }
+
+        // Restore summary bar if any chips were re-selected
+        updateSummary();
       } catch(e) {}
     })();
   </script>

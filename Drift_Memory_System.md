@@ -40,10 +40,14 @@ This allows:
 
 ## 3. Memory Schema (JSON)
 
+The app now captures four structured inputs: location, energy, **leisure intent (need)**, and time. The `need` field represents what kind of rest the user wants from the moment and directly shapes the AI suggestion.
+
 ```json
 {
   "location": "commuting",
   "energy": "low",
+  "feeling": "anxious",
+  "need": "calm down",
   "time": "5-15 min",
   "last_action": "Close your eyes and take a slow breath"
 }
@@ -160,14 +164,31 @@ This allows:
 - Notes that the previous result remains visible if one exists
 - No technical error strings shown to the user
 
+### Feeling Input
+- New field: "How are you feeling?" with options Anxious / Bored / Restless / Numb
+- Positioned after Energy, before Need
+- Optional — defaults to "unspecified feeling" if skipped
+- Sent to the server and used to subtly shape the tone of the suggestion (e.g. anxious → calming; bored → a touch of novelty)
+- Stored as `drift_feeling` in localStorage; shown in the memory panel
+- Never used as a diagnostic label — microcopy reads "A quick check-in, not a diagnosis."
+
+### Typewriter Animation
+- New AI results are revealed character-by-character at ~14ms per character
+- Action, Why this fits, and Tiny first step each animate in sequence with a 240ms pause between fields
+- Buttons (Get my action, Try another) are disabled during animation to prevent double-submission
+- Page-load restore from localStorage shows instantly — no animation — so returning users see content immediately
+- The loading circle hides before the typewriter starts, giving a clean visual handoff
+
 ### Memory Schema (updated)
 ```json
 {
   "drift_location":       "commuting",
   "drift_energy":         "low",
+  "drift_feeling":        "anxious",
+  "drift_need":           "calm down",
   "drift_time":           "5–15 minutes",
   "drift_last_action":    "Close your eyes and listen to a single song you love.",
-  "drift_last_why":       "Low energy and limited time make passive listening ideal.",
+  "drift_last_why":       "Low energy, anxious feeling, and limited time make passive listening ideal.",
   "drift_last_tiny_step": "Put in your headphones right now.",
   "drift_positive_count": "3",
   "drift_negative_count": "1"

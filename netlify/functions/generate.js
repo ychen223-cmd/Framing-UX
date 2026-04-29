@@ -27,7 +27,7 @@ Core rules:
 - Return exactly ONE action
 - Be short and direct
 - Be immediately actionable
-- Match the user's current energy and time
+- Match the user's current location, energy level, available time, AND stated need
 - Avoid preparation, setup, travel, or special tools unless already available
 - Do not give long wellness articles
 - Do not give multiple options
@@ -35,9 +35,25 @@ Core rules:
 - Do not assume ideal conditions
 - Every sentence must be complete and end with a period — never cut off mid-phrase
 
+Leisure intent — honor the user's stated need:
+- "calm down"     → quiet, grounding, sensory, or stillness-based. Nothing effortful or stimulating.
+- "move a little" → light physical: stretching, a short walk, gentle movement. No equipment or intensity.
+- "feel inspired" → noticing, creating, or encountering something interesting: observing, a short read, music, sketching.
+- "reconnect"     → gentle presence: mindful noticing, looking outside, a quiet moment with yourself or your surroundings.
+- "general reset" → whatever best fits location, energy, and time.
+
+Emotional state — let the user's feeling quietly shape the tone:
+- "anxious"   → choose something that slows the body or narrows attention. Avoid novelty or stimulation.
+- "bored"     → a small dose of novelty or gentle curiosity is welcome. Nothing demanding.
+- "restless"  → light movement or a change of sensory focus. Brief, not effortful.
+- "numb"      → something with warmth or gentle texture. Simple, sensory, present-moment.
+- "unspecified feeling" → no adjustment needed.
+
+In the "Why this fits" line, briefly reference the user's emotional state and stated need alongside their energy and time.
+
 Output format (use exactly this structure, no extra text):
 Action: [one complete sentence ending with a period]
-Why this fits: [one complete sentence ending with a period]
+Why this fits: [one complete sentence that mentions the user's need, energy level, and time — ending with a period]
 Tiny first step: [the smallest possible action to start right now — one short sentence ending with a period]
 `.trim();
 
@@ -84,12 +100,16 @@ exports.handler = async function (event) {
   }
 
   // ── 2. PARSE THE REQUEST BODY ─────────────────────────────────────────────
-  let location, energy, time, recentActions;
+  let location, energy, time, need, feeling, recentActions;
   try {
     const body = JSON.parse(event.body);
     location      = body.location;
     energy        = body.energy;
     time          = body.time;
+    // need: the user's stated leisure intent — optional, defaults to "general reset"
+    need          = (typeof body.need === 'string' && body.need.trim()) ? body.need.trim() : 'general reset';
+    // feeling: the user's current emotional state — optional, defaults to "unspecified feeling"
+    feeling       = (typeof body.feeling === 'string' && body.feeling.trim()) ? body.feeling.trim() : 'unspecified feeling';
     // recentActions: array of up to 3 recent action strings sent by the client
     recentActions = Array.isArray(body.recentActions) ? body.recentActions.slice(0, 3) : [];
   } catch {
@@ -114,7 +134,7 @@ exports.handler = async function (event) {
     recentNote = `\n\nIMPORTANT — variety required: The user has already seen these recent suggestions. Do NOT repeat or closely paraphrase any of them. Choose a clearly different type of low-friction leisure activity:\n${list}`;
   }
 
-  const userPrompt = `I am currently ${location}. My energy level is ${energy}. I have ${time} available. What should I do instead of scrolling?${recentNote}`;
+  const userPrompt = `I am currently ${location}. My energy level is ${energy}. I have ${time} available. How I am feeling: ${feeling}. What I need from this moment: ${need}. What should I do instead of scrolling?${recentNote}`;
 
   // ── 4. CALL THE GROQ API ──────────────────────────────────────────────────
   let rawText = '';
