@@ -70,6 +70,7 @@ The app captures five structured inputs: location, energy, feeling, leisure inte
   "drift_positive_count":  "3",
   "drift_negative_count":  "1"
 }
+```
 4. Failure States & Recovery
 API fails
 The previous result remains visible
