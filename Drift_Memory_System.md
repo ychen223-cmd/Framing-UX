@@ -111,7 +111,7 @@ Case 6: Try another suggestion
 Expected: new suggestion is different from the last 3 shown
 6. Live Prototype
 Netlify URL:
-https://astounding-pegasus-ff18ce.netlify.app/
+👉 https://framing-ux-yuxuan.netlify.app/
 
 Features:
 
@@ -205,4 +205,3 @@ Request Body
 }
 Fallback
 All error paths (missing API key, Groq failure, parse failure) return HTTP 200 with a static calm fallback object instead of a 502, so the UI never crashes.
-
